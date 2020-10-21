@@ -9,7 +9,7 @@ import java.net.Socket;
 public class EchoServer {
 	
 	// REPLACE WITH PORT PROVIDED BY THE INSTRUCTOR
-	public static final int PORT_NUMBER = 0; 
+	public static final int PORT_NUMBER = 6013; 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		EchoServer server = new EchoServer();
 		server.start();
@@ -19,13 +19,35 @@ public class EchoServer {
 		ServerSocket serverSocket = new ServerSocket(PORT_NUMBER);
 		while (true) {
 			Socket socket = serverSocket.accept();
-			
-			// Put your code here.
-			// This should do very little, essentially:
-			//   * Construct an instance of your runnable class
-			//   * Construct a Thread with your runnable
-			//      * Or use a thread pool
-			//   * Start that thread
+			InputStream input = socket.getInputStream();
+			OutputStream output = socket.getOutputStream();
+			ClientThread clientThread = new ClientThread(socket, input, output);
+			Thread thread = new Thread(clientThread);
+			thread.start();
+		}
+	}
+	final class ClientThread implements Runnable{
+		InputStream inputStream;
+		OutputStream outputStream;
+		Socket socket;
+		public ClientThread(Socket sock, InputStream in, OutputStream out){
+			this.inputStream = in;
+			this.outputStream = out;
+			this.socket = sock;
+		}
+		@Override
+		public void run(){
+			int line;
+			try{
+				while((line = inputStream.read()) != -1){
+					outputStream.write(line);
+					outputStream.flush();
+				}
+				socket.shutdownOutput();
+				socket.shutdownInput();
+			}catch(IOException ioException){
+				ioException.printStackTrace();
+			}
 		}
 	}
 }
