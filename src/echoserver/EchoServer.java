@@ -19,7 +19,7 @@ public class EchoServer {
 		ServerSocket serverSocket = new ServerSocket(PORT_NUMBER);
 		while (true) {
 			Socket socket = serverSocket.accept();
-
+			
 			// Put your code here.
 			// This should do very little, essentially:
 			//   * Construct an instance of your runnable class
