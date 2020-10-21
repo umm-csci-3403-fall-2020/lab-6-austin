@@ -15,16 +15,16 @@ public class EchoClient {
 
 	private void start() throws IOException {
 		Socket socket = new Socket("localhost", PORT_NUMBER);
-		InputStream inputStream = socket.getInputStream();
+	// Output threading
 		OutputStream outputStream = socket.getOutputStream();
 		WriteToServer writer = new WriteToServer(outputStream, socket);
-		ReadServer reader = new ReadServer(inputStream, socket);
+		Thread outThread = new Thread(writer);
+		outThread.start();
 
-		Thread outThread, inThread;
-		outThread = new Thread(writer);
-		inThread = new Thread(reader);
-		// start threads
-		 outThread.start();
+		// input threading
+		InputStream inputStream = socket.getInputStream();
+		ReadServer reader = new ReadServer(inputStream, socket);
+		Thread inThread = new Thread(reader);
 		 inThread.start();
 	}
 
@@ -39,8 +39,8 @@ public class EchoClient {
 		Socket socket;
 	
 		public ReadServer(InputStream in, Socket sock) {
-			inputStream = in;
-			socket = sock;
+			this.inputStream = in;
+			this.socket = sock;
 		}
 		@Override
 		public void run(){
@@ -69,10 +69,10 @@ public class EchoClient {
 		public void run(){
 			try{
 				while((send = System.in.read())!= -1){//reads while data is sent in
-					outputStream.write(send);
-					outputStream.flush();
+					this.outputStream.write(send);
+					this.outputStream.flush();
 				}
-				socket.shutdownInput();//shutdowns the soxket after reading
+				socket.shutdownOutput();//shutdowns the soxket after reading
 			}catch(IOException io){
 				ioError(io);
 			}
